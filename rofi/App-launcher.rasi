@@ -1,0 +1,109 @@
+@import "~/.cache/wal/colors-rofi-dark.rasi"
+
+configuration {
+    modi: "drun,run";
+    show-icons: false;
+    terminal: "kitty";
+    font: "JetBrains Mono Nerd Font Bold 13";
+    drun-display-format: "{name}";
+    lines: 8;
+}
+
+* {
+    border-colour: @foreground;
+    background-colour: @background;
+    text-colour: @foreground;
+    accent-colour: @foreground;
+    selected-background-colour: @selected-normal-background;
+    selected-text-colour: @background;
+}
+
+window {
+    width: 350;
+    height: 300;
+    border: 0px;
+    border-radius: 8px;
+    padding: 8px;
+    background-color: @background;
+}
+
+mainbox {
+    spacing: 0px;
+    padding: 0px;
+    children: [inputbar, listview];
+    background-color: transparent;
+}
+
+inputbar {
+    spacing: 0px;
+    padding: 12px;
+    border: 0px;
+    border-color: @border-colour;
+    children: [textbox-prompt-colon, entry];
+    background-color: transparent;
+}
+
+textbox-prompt-colon {
+    expand: false;
+    str: "󰣇 ";
+    padding: 0px 12px 0px 0px;
+    text-color: @foreground;
+    font: "JetBrains Mono Nerd Font Bold 13";
+    background-color: transparent;
+}
+
+entry {
+    placeholder: "Search Applications...";
+    placeholder-color: @foreground;
+    text-color: @foreground;
+    font: "JetBrains Mono Nerd Font 13";
+    background-color: transparent;
+}
+
+listview {
+    spacing: 0px;
+    padding: 0px;
+    dynamic: true;
+    scrollbar: false;
+    fixed-height: true;
+    background-color: transparent;
+}
+
+element {
+    padding: 12px 12px;
+    border-radius: 2px;
+    background-color: transparent;
+    text-color: @foreground;
+}
+
+element selected.normal {
+    background-color: @selected-background-colour;
+    text-color: @selected-text-colour;
+}
+
+element selected.active {
+    background-color: @selected-active-background;
+    text-color: @selected-active-foreground;
+}
+
+element selected.urgent {
+    background-color: @selected-urgent-background;
+    text-color: @selected-urgent-foreground;
+}
+
+element normal.active {
+    background-color: transparent;
+    text-color: @active-foreground;
+}
+
+element normal.urgent {
+    background-color: transparent;
+    text-color: @urgent-foreground;
+}
+
+element-text {
+    vertical-align: 0.5;
+    text-color: inherit;
+    font: "JetBrains Mono Nerd Font Bold 13";
+    background-color: transparent;
+}
