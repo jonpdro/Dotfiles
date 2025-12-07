@@ -9,7 +9,7 @@ local utils = require 'mp.utils'
 -- ============================================================================
 local Config = {
     -- File paths
-    csv_path = "/JP/watch_history.csv",
+    csv_path = "/JP/Media/watch_history.csv",
 
     -- Categories (order matters for cycling)
     categories = {"Anime", "TV Show", "Movie", "Unspecified"},
