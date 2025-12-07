@@ -1,0 +1,83 @@
+[mgr]
+ratio = [0, 7, 7]
+sort_by = "natural"
+sort_sensitive = false
+sort_reverse = false
+sort_dir_first = true
+sort_translit = false
+linemode = "size"
+show_hidden = true
+show_symlink = true
+scrolloff = 5
+mouse_events = ["click", "scroll"]
+# title_format = "Yazi: {cwd}"
+
+[preview]
+tab_size = 4
+max_width = 7000
+max_height = 9000
+cache_dir = ""
+image_delay = 30
+image_filter = "triangle"
+image_quality = 75
+sixel_fraction = 15
+ueberzug_scale = 1
+ueberzug_offset = [0, 0, 0, 0]
+
+[opener]
+video = [
+	{ run = 'mpv --force-window "$@"', orphan = true, desc = "mpv", for = "unix" },
+]
+markdown = [
+	{ run = 'obsidian "$1"', orphan = true, desc = "Obsidian", for = "unix" },
+]
+code = [
+	{ run = 'nvim "$@"', block = true, desc = "nvim", for = "unix" },
+]
+pdf = [
+	{ run = 'sioyek "$1"', orphan = true, desc = "sioyek", for = "unix" },
+]
+epub = [
+	{ run = 'sioyek "$1"', orphan = true, desc = "sioyek", for = "unix" },
+]
+image = [
+	{ run = 'qimgv "$1"', orphan = true, desc = "qimgv", for = "unix" },
+]
+extract = [
+	{ run = 'unzip "$1"', desc = "Extract with unzip", for = "unix" },
+]
+
+[open]
+rules = [
+	# Folder
+	{ name = "*/", use = [ "edit", "open", "reveal" ] },
+
+	# Markdown → Obsidian
+	{ name = "*.md", use = [ "markdown", "reveal" ] },
+
+	# Text/Code → Neovim
+	{ mime = "text/*", use = [ "code", "reveal" ] },
+	{ mime = "application/{json,ndjson}", use = [ "code", "reveal" ] },
+	{ mime = "*/javascript", use = [ "code", "reveal" ] },
+
+	# Images → qimgv
+	{ mime = "image/*", use = [ "image", "reveal" ] },
+
+	# Video/Audio → mpv
+	{ mime = "{audio,video}/*", use = [ "video", "reveal" ] },
+
+	# Archive
+	{ mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", use = [ "extract", "reveal" ] },
+
+	# PDF → sioyek
+	{ mime = "application/pdf", use = [ "pdf", "reveal" ] },
+
+	# EPUB → sioyek
+	{ name = "*.epub", use = [ "epub", "reveal" ] },
+
+	# Empty file
+	{ mime = "inode/empty", use = [ "code", "reveal" ] },
+
+	# Fallback
+	{ name = "*", use = [ "open", "reveal" ] },
+]

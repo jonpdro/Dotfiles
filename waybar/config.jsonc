@@ -1,0 +1,101 @@
+{
+  "layer": "top",
+  "position": "bottom",
+  "max-height": 30,
+  "width": 1920,
+  "reload_style_on_change": true,
+
+  "modules-left": ["hyprland/workspaces"],
+  "modules-center": ["clock"],
+  "modules-right": ["memory", "cpu", "custom/separator", "network", "bluetooth", "tray", "custom/separator", "wireplumber"],
+
+ "hyprland/workspaces": {
+    "disable-scroll": true,
+    "all-outputs": true,
+    "active-only": false,
+    "on-click": "activate",
+    "disable-scroll": false,
+    "on-scroll-up": "hyprctl dispatch workspace -1",
+    "on-scroll-down": "hyprctl dispatch workspace +1",
+    "persistent-workspaces": {}
+  },
+
+  "clock": {
+    "format": "{:L%A, %m/%d/%Y - %H:%M}",
+    "tooltip": false,
+    "on-click-right": "omarchy-launch-floating-terminal-with-presentation omarchy-tz-select"
+  },
+
+
+  "custom/separator": {
+    "format": "|",
+    "tooltip": false
+  },
+
+  "memory": {
+    "states": {
+      "c": 90,
+      "h": 60,
+      "m": 30
+    },
+    "interval": 10,
+    "format": "M: {used}GB",
+    "format-m": "M: {used}GB",
+    "format-h": "M: {used}GB",
+    "format-c": "M: {used}GB",
+    "format-alt": "M: {percentage}%",
+    "max-length": 10,
+    "tooltip": true,
+    "tooltip-format": "{used:0.1f}GB/{total:0.1f}GB"
+  },
+
+  "cpu": {
+    "interval": 10,
+    "format": "C: {usage}%",
+    "format-alt": "{icon0}{icon1}{icon2}{icon3}",
+    "format-icons": ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
+  },
+
+  "wireplumber": {
+    "format": "Vol:{volume}%",
+    "tooltip-format": "{node_name} ({volume}%)",
+    "format-muted": "Vol: 0%",
+    "scroll-step": 5,
+    "on-click": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0%",
+    "on-click-right": "/home/jon/.config/hypr/scripts/wiremix.sh",
+    "on-click-middle": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 100%"
+  },
+
+  "network": {
+    "format": "",
+    "format-disconnected": "",
+    "format-disabled": "",
+    "format-wifi": "",
+    "format-ethernet": "",
+    "tooltip-format": "Right-click to connect.",
+    "tooltip-format-disabled": "Network disabled.",
+    "tooltip-format-disconnected": "Right-click to connect.",
+    "tooltip-format-wifi": "{essid} ({frequency} GHz)\n⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}",
+    "tooltip-format-ethernet": "⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}",
+    "interval": 3,
+    "spacing": 1,
+    "on-click": "rfkill toggle wifi",
+    "on-click-right": "/home/jon/.config/hypr/scripts/impala.sh"
+  },
+
+  "bluetooth": {
+    "format": "",
+    "format-disabled": "",
+    "format-connected": "",
+    "tooltip-format": "Right-click to connect.",
+    "tooltip-format-disabled": "Bluetooth off.",
+    "tooltip-format-connected": " {device_alias} ({device_battery_percentage}% 󰥉) ",
+    "on-click": "rfkill toggle bluetooth",
+    "on-click-right": "/home/jon/.config/hypr/scripts/bluetuith.sh"
+  },
+
+  "tray": {
+    "icon-size": 18,
+    "spacing": 0
+  }
+}

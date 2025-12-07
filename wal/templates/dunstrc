@@ -1,0 +1,33 @@
+[global]
+    monitor = 0
+    width = (0, 500)
+    height = (0, 250)
+    origin = bottom-right
+    offset = 10x10
+    notification_limit = 10
+    font = Jetbrains Mono Nerd Font
+    frame_width = 3
+    corner_radius = 2
+    gap_size = 8
+
+    markup = full
+    format = "<b>%s</b>\n%b"
+    padding = 8
+    horizontal_padding = 12 
+
+    sort = update	
+
+    # Pywal colors
+    background = "{background}"
+    foreground = "{foreground}"
+    frame_color = "{color2}"
+
+
+    [urgency_low]
+    timeout = 3
+
+    [urgency_normal]
+    timeout = 3
+    
+    [urgency_critical]
+    timeout = 10
