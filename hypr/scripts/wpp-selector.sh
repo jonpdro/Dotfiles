@@ -54,7 +54,7 @@ load_wallpapers_cache() {
     exit 1
   fi
 
-  echo "âœ“ Loaded ${#WALLPAPER_ARRAY[@]} wallpapers into cache"
+  echo "✓ Loaded ${#WALLPAPER_ARRAY[@]} wallpapers into cache"
 }
 
 get_wallpapers() {
@@ -65,7 +65,7 @@ get_current_wallpaper() {
   # Cache the current wallpaper to avoid repeated file parsing
   if [ -z "$CURRENT_WALLPAPER_CACHE" ]; then
     if [ -f "$HYPRPAPER_CONF" ]; then
-      CURRENT_WALLPAPER_CACHE=$(grep -E '^wallpaper\s*=\s*DP-1,' "$HYPRPAPER_CONF" | head -1 | sed -E 's/^wallpaper\s*=\s*DP-1,\s*"?([^"]*)"?/\1/')
+      CURRENT_WALLPAPER_CACHE=$(grep -E '^\s*path\s*=\s*' "$HYPRPAPER_CONF" | head -1 | sed -E 's/^\s*path\s*=\s*//' | tr -d '"')
     fi
   fi
   echo "$CURRENT_WALLPAPER_CACHE"
@@ -108,9 +108,9 @@ get_random_wallpaper() {
 display_wallpapers() {
   local theme="$1"
   if [ "$theme" = "$MENU_THEME" ]; then
-    printf '%s\n' "${WALLPAPER_ARRAY[@]}" | rofi -dmenu -theme "$theme" -p "ï€¾" -kb-custom-1 "F1" -kb-custom-2 "r"
+    printf '%s\n' "${WALLPAPER_ARRAY[@]}" | rofi -dmenu -theme "$theme" -p "" -kb-custom-1 "F1" -kb-custom-2 "r"
   else
-    printf '%s\n' "${WALLPAPER_ARRAY[@]}" | rofi -dmenu -theme "$theme" -p "ï€¾" -kb-custom-1 "F1" -i
+    printf '%s\n' "${WALLPAPER_ARRAY[@]}" | rofi -dmenu -theme "$theme" -p "" -kb-custom-1 "F1" -i
   fi
 }
 
@@ -122,13 +122,13 @@ send_notification() {
     dunstify "New Wallpaper and Theme:" "$display_name" \
       -r 1000 \
       -t 3000
-    echo "âœ“ Notification sent: $display_name"
+    echo "✓ Notification sent: $display_name"
   elif command -v notify-send &>/dev/null; then
     notify-send "New Wallpaper and Theme:" "$display_name" \
       -t 3000
-    echo "âœ“ Notification sent (via notify-send): $display_name"
+    echo "✓ Notification sent (via notify-send): $display_name"
   else
-    echo "âš  Notification not sent: dunstify/notify-send not available"
+    echo "⚠ Notification not sent: dunstify/notify-send not available"
   fi
 }
 
@@ -148,11 +148,11 @@ generate_pywal_scheme() {
   echo "Generating color scheme with pywal..."
 
   if wal -i "$wallpaper_path" -n -s; then
-    echo "âœ“ Pywal color scheme generated successfully"
+    echo "✓ Pywal color scheme generated successfully"
     reload_pywal_apps
     return 0
   else
-    echo "âœ— Failed to generate pywal color scheme"
+    echo "✗ Failed to generate pywal color scheme"
     return 1
   fi
 }
@@ -160,17 +160,17 @@ generate_pywal_scheme() {
 reload_pywal_apps() {
   echo "Reloading applications with new color scheme..."
   if pgrep dunst >/dev/null; then
-    echo "  â†’ Removing all Dunst notifications..."
+    echo "  → Removing all Dunst notifications..."
     killall dunst 2>/dev/null
   fi
   if pgrep waybar >/dev/null; then
-    echo "  â†’ Restarting waybar..."
+    echo "  → Restarting waybar..."
     killall waybar 2>/dev/null
     sleep 0.5
     waybar &
-    echo "  â†’ Waybar restarted"
+    echo "  → Waybar restarted"
   else
-    echo "  â†’ Waybar not running, skipping"
+    echo "  → Waybar not running, skipping"
   fi
 }
 
@@ -187,7 +187,7 @@ update_hyprpaper() {
     hyprctl hyprpaper preload "$wallpaper_path"
     hyprctl hyprpaper wallpaper "DP-1,$wallpaper_path"
     hyprctl hyprpaper unload all
-    echo "âœ“ Hyprpaper wallpaper applied via IPC"
+    echo "✓ Hyprpaper wallpaper applied via IPC"
   else
     echo "Error: hyprctl not available"
     return 1
@@ -206,9 +206,9 @@ update_hyprlock() {
   sed -i '/^background {/,/^}/ s/\(^[[:space:]]*path = \).*$/\1'"$escaped_path"'/' "$HYPRLOCK_CONF"
 
   if [[ $? -eq 0 ]]; then
-    echo "âœ“ Hyprlock background updated"
+    echo "✓ Hyprlock background updated"
   else
-    echo "âœ— Failed to update hyprlock configuration"
+    echo "✗ Failed to update hyprlock configuration"
     return 1
   fi
 }
@@ -217,27 +217,44 @@ update_hyprpaper_conf() {
   local wallpaper_file="$1"
   local wallpaper_path="$WALLPAPER_DIR/$wallpaper_file"
   local temp_conf=$(mktemp)
+  local in_wallpaper_block=0
+  local block_indent=""
 
   while IFS= read -r line; do
-    if [[ "$line" =~ ^preload\ *=\ * ]]; then
-      if [[ "$line" =~ \".*\" ]]; then
-        echo "preload = \"$wallpaper_path\"" >>"$temp_conf"
+    # Detect start of wallpaper block
+    if [[ "$line" =~ ^[[:space:]]*wallpaper[[:space:]]*\{[[:space:]]*$ ]]; then
+      in_wallpaper_block=1
+      # Capture the indentation of the opening brace line
+      block_indent=$(echo "$line" | sed 's/wallpaper.*//')
+      echo "$line" >>"$temp_conf"
+      continue
+    fi
+    
+    # Detect end of wallpaper block
+    if [[ $in_wallpaper_block -eq 1 ]] && [[ "$line" =~ ^[[:space:]]*\}[[:space:]]*$ ]]; then
+      in_wallpaper_block=0
+      echo "$line" >>"$temp_conf"
+      continue
+    fi
+    
+    # Inside wallpaper block - update the path line
+    if [[ $in_wallpaper_block -eq 1 ]]; then
+      if [[ "$line" =~ ^[[:space:]]*path[[:space:]]*=[[:space:]]* ]]; then
+        # Preserve the indentation of the original path line
+        local line_indent=$(echo "$line" | sed 's/path.*//')
+        echo "${line_indent}path = $wallpaper_path" >>"$temp_conf"
       else
-        echo "preload = $wallpaper_path" >>"$temp_conf"
-      fi
-    elif [[ "$line" =~ ^wallpaper\ *=\ *DP-1, ]]; then
-      if [[ "$line" =~ \".*\" ]]; then
-        echo "wallpaper = DP-1,\"$wallpaper_path\"" >>"$temp_conf"
-      else
-        echo "wallpaper = DP-1,$wallpaper_path" >>"$temp_conf"
+        # Keep monitor and fit_mode lines unchanged
+        echo "$line" >>"$temp_conf"
       fi
     else
+      # Outside wallpaper block - keep line unchanged
       echo "$line" >>"$temp_conf"
     fi
   done <"$HYPRPAPER_CONF"
 
   mv "$temp_conf" "$HYPRPAPER_CONF"
-  echo "âœ“ Hyprpaper.conf updated"
+  echo "✓ Hyprpaper.conf updated"
 }
 
 apply_wallpaper() {
@@ -256,7 +273,7 @@ apply_wallpaper() {
   update_hyprlock "$wallpaper_path"
   send_notification "$selected"
 
-  echo "ðŸŽ‰ Wallpaper and color scheme applied successfully!"
+  echo "🎉 Wallpaper and color scheme applied successfully!"
 }
 
 main() {
