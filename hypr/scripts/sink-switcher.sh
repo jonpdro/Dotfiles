@@ -1,55 +1,39 @@
 #!/bin/bash
 
-# Define the sinks
-monitor_sink="alsa_output.pci-0000_04_00.1.HiFi__HDMI1__sink"
-bt_sink="bluez_output.CC_14_BC_BA_31_3E.1"
+# Audio device switcher for PipeWire
+# Toggles between Monitor and Bluetooth headphones
 
-# Device names
-speakers="🖥️ - Horizon ZPRO"
-headset="🎧 - Edifier W800BT Plus"
+# Sink names (use actual sink IDs)
+MONITOR_SINK="alsa_output.pci-0000_04_00.1.HiFi__HDMI1__sink"
+HEADPHONES_SINK="bluez_output.CC:14:BC:BA:31:3E"
 
-# Get the current default sink
-current_sink=$(pactl get-default-sink)
+# Get current default sink
+CURRENT_SINK=$(pactl get-default-sink)
 
-# Check if Bluetooth sink exists (if headset is connected)
-bt_available=$(pactl list short sinks | grep -c "$bt_sink")
-
-# Function to move audio streams
-move_streams() {
-    new_sink="$1"
-    for stream in $(pactl list short sink-inputs | awk '{print $1}'); do
-        pactl move-sink-input "$stream" "$new_sink"
-    done
-}
-
-notify() {
-    title="$1"
-    msg="$2"
-    icon="$3"
-
-    notify-send -u low -i "$icon" "$title" "$msg"
-}
-
-############################################
-#            MAIN LOGIC
-############################################
-
-# If Bluetooth is NOT available → force HDMI
-if [[ "$bt_available" -eq 0 ]]; then
-    pactl set-default-sink "$monitor_sink"
-    move_streams "$monitor_sink"
-    notify "Audio switch failed!" "$headset is unavailable!"
-    exit 0
-fi
-
-# Bluetooth IS available → normal toggle
-if [[ "$current_sink" == "$monitor_sink" ]]; then
-    pactl set-default-sink "$bt_sink"
-    move_streams "$bt_sink"
-    notify "Audio switched to: $headset"
+# Determine which device to switch to
+if echo "$CURRENT_SINK" | grep -q "HDMI"; then
+    # Currently on monitor, switch to headphones
+    TARGET_SINK="$HEADPHONES_SINK"
+    NOTIFICATION="Audio → 🎧"
 else
-    pactl set-default-sink "$monitor_sink"
-    move_streams "$monitor_sink"
-    notify "Audio switched to: $speakers"
+    # Currently on headphones (or unknown), switch to monitor
+    TARGET_SINK="$MONITOR_SINK"
+    NOTIFICATION="Audio → 🖥️"
 fi
 
+# Verify the target sink exists
+if ! pactl list short sinks | grep -q "^[0-9]*\s*$TARGET_SINK"; then
+    notify-send "Audio Switch Error" "Target device not found"
+    exit 1
+fi
+
+# Set the new default sink
+pactl set-default-sink "$TARGET_SINK"
+
+# Move all currently playing streams to the new sink
+pactl list short sink-inputs | awk '{print $1}' | while read -r stream; do
+    pactl move-sink-input "$stream" "$TARGET_SINK" 2>/dev/null
+done
+
+# Send notification
+notify-send -u low -t 2000 "$NOTIFICATION"
