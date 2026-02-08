@@ -5,6 +5,6 @@ if pgrep -f "kitty.*--class wiremix" >/dev/null; then
     # Kill only that kitty instance
     pkill -f "kitty.*--class wiremix"
 else
-    # Launch wiremix in a kitty window
-    kitty --class wiremix --title "wiremix" -e wiremix &
+    # Launch wiremix in a kitty window, opening the Output tab
+    kitty --class wiremix --title "wiremix" -e wiremix -v output &
 fi
